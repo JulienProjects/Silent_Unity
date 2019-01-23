@@ -1,0 +1,40 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CamMouseLock : MonoBehaviour
+{
+    Vector2 smoothV;
+    Vector2 mouseLock;
+    public float sensivitiy = 5.0f;
+    public float smoothing = 2.0f;
+    public GameObject charakter;
+    // Use this for initialization
+    void Start()
+    {
+        charakter = this.transform.parent.gameObject;
+       
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+        
+        if (GameController.gameState != GameController.GameState.inGame)
+        {
+            return;
+        }
+        var md = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+
+        md = Vector2.Scale(md, new Vector2(sensivitiy * smoothing, sensivitiy * smoothing));
+        smoothV.x = Mathf.Lerp(smoothV.x, md.x, 1f / smoothing);
+        smoothV.y = Mathf.Lerp(smoothV.y, md.y, 1f / smoothing);
+        mouseLock += smoothV;
+
+        mouseLock.y = Mathf.Clamp(mouseLock.y, -90f, 90f);
+
+        transform.localRotation = Quaternion.AngleAxis(-mouseLock.y, Vector3.right);
+        charakter.transform.localRotation = Quaternion.AngleAxis(mouseLock.x, Vector3.up);
+    }
+}
