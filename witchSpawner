@@ -1,0 +1,30 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class witchSpawner : MonoBehaviour
+{
+    public GameObject witch;
+    public Collider m_Collider;
+    public AudioSource screamS;
+    public float witchHealth = 300f;
+     public bool spawn = false;
+    public Vector3 spawnValues;
+    void Start()
+    {
+        //Fetch the GameObject's Collider (make sure it has a Collider component)
+        m_Collider = GetComponent<Collider>();
+    }
+    void OnTriggerEnter(Collider other)
+    {
+        Debug.Log("col");
+        if (!spawn)
+        {
+            Vector3 spawnPosition = new Vector3(spawnValues.x, spawnValues.y, spawnValues.z); //xyz
+            Instantiate(witch, spawnPosition, witch.transform.rotation);
+            screamS.Play();
+            spawn = true;
+            m_Collider.enabled = !m_Collider.enabled;
+        }
+    }
+}
