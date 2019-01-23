@@ -1,0 +1,119 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class optionenController : MonoBehaviour
+{
+    private GameObject optionM;
+    private GameObject menuM;
+    public Animator anim;
+
+    public Slider volumeSlider;
+    public Slider sensSlider;
+    public static float SoundV;
+    public static float sensV;
+    public Toggle fullscreenToggle;
+    public Toggle[] resolutionToggles;
+    public int[] screenWidth;
+    int activeScreenResIndex;
+    private bool fullScreen = false;
+    int activeScreenRes;
+    public TextMesh textmesh;
+    // Use this for initialization
+    void Start()
+    {
+
+        optionM = GameObject.FindWithTag("optionM");
+        menuM = GameObject.FindWithTag("menuM");
+        //optionM.SetActive(false);
+        activeScreenResIndex = PlayerPrefs.GetInt("screen res index");
+        bool isFullScreen = (PlayerPrefs.GetInt("fullscreen") == 1) ? true : false;
+
+
+        for (int i = 0; i < resolutionToggles.Length; i++)
+        {
+            resolutionToggles[i].isOn = i == activeScreenResIndex;
+        }
+
+        fullscreenToggle.isOn = isFullScreen;
+        sensSlider.value = optionenController.SoundV;
+    }
+    void OnMouseEnter()
+    {
+        if (gameObject.name == "menu")
+        {
+            //textmesh.color = Color.gray;
+            textmesh.fontSize = 55;
+        }
+    }
+    void OnMouseExit()
+    {
+        //textmesh.color = Color.white;
+        textmesh.fontSize = 50;
+    }
+    void OnMouseDown()
+    {
+        if (gameObject.name == "menu")
+        {
+            anim.SetBool("op", false);
+            anim.SetBool("me", true);
+
+            menuM.SetActive(true);
+            optionM.SetActive(false);
+        }
+    }
+    public void SetScreenRes(int i)
+    {
+        if (!fullScreen)
+        {
+            if (resolutionToggles[i].isOn)
+            {
+                activeScreenResIndex = i;
+                float aspectRatio = 16 / 9f;
+                Screen.SetResolution(screenWidth[i], (int)(screenWidth[i] / aspectRatio), false);
+                PlayerPrefs.SetInt("screen res index", activeScreenResIndex);
+                PlayerPrefs.Save();
+            }
+        }
+    }
+    public void SubmitSliderSetting()
+    {
+        //Displays the value of the slider in the console.
+        Debug.Log(volumeSlider.value);
+        optionenController.SoundV = volumeSlider.value;
+
+    }
+    public void sensivity()
+    {
+        //Displays the value of the slider in the console.
+        Debug.Log(sensSlider.value * 5);
+        optionenController.sensV = sensSlider.value * 5;
+        
+    }
+    public void SetFullscreen(bool isFullScreen)
+    {
+        fullScreen = !fullScreen;
+        //Screen.fullScreen = !Screen.fullScreen;
+        for (int i = 0; i < resolutionToggles.Length; i++)
+        {
+            resolutionToggles[i].interactable = !isFullScreen;
+        }
+
+        if (fullScreen)
+        {
+            Resolution[] allResolutions = Screen.resolutions;
+            Resolution maxResolution = allResolutions[allResolutions.Length - 1];
+            Screen.SetResolution(maxResolution.width, maxResolution.height, true);
+            Debug.Log("full");
+        }
+        else
+        {
+            SetScreenRes(activeScreenResIndex);
+        }
+
+        PlayerPrefs.SetInt("fullscreen", ((isFullScreen) ? 1 : 0));
+
+        PlayerPrefs.Save();
+    }
+}
