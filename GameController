@@ -1,0 +1,74 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+public class GameController : MonoBehaviour
+{
+    private GameObject pauseMenu;
+    private GameObject respawnMenu;
+    private bool neuStart = false;
+    Scene m_Scene;
+    string sceneName;
+    public enum GameState
+    {
+        inMenus, inGame, paused, gameOver, inAn
+    }
+
+    public static GameState gameState;
+    // Use this for initialization
+    void Start()
+    {
+        gameState = GameController.GameState.inGame;
+        pauseMenu = GameObject.FindWithTag("PauseMenu");
+        pauseMenu.SetActive(false);
+
+        respawnMenu = GameObject.FindWithTag("deathMenu");
+        respawnMenu.SetActive(false);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            pauseMenu.SetActive(true);
+            gameState = GameController.GameState.paused;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        colliderCheck collidercheck = GameObject.FindWithTag("col").GetComponent<colliderCheck>();
+        Debug.Log(collidercheck.isDead);
+        if (collidercheck.isDead)
+        {
+            gameState = GameController.GameState.gameOver;
+            Cursor.lockState = CursorLockMode.None;
+            respawnMenu.SetActive(true);
+            neuStart = true;
+        }
+
+    }
+    public void resumeGame()
+    {
+        gameState = GameController.GameState.inGame;
+        pauseMenu.SetActive(false);
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+    public void respawn()
+    {
+        m_Scene = SceneManager.GetActiveScene();
+        sceneName = m_Scene.name;
+        SceneManager.LoadScene(sceneName);
+        //respawnMenu.SetActive(false);
+        //Cursor.lockState = CursorLockMode.Locked;
+        //gameState = GameController.GameState.inGame;
+    }
+    public void exitGame()
+    {
+        Application.Quit();
+    }
+    public void menu()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        //gameState = GameController.GameState.inMenus;
+        SceneManager.LoadScene("menu");
+    }
+}
