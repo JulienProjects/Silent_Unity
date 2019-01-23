@@ -1,0 +1,32 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class flashlight : MonoBehaviour
+{
+    private Vector3 v3Offset;
+    private GameObject goFollow;
+    public float speed = 3.0f;
+   Light myLight;
+    AudioSource audioData;
+
+    void Start()
+    {
+        goFollow = Camera.main.gameObject;
+        v3Offset = transform.position - goFollow.transform.position;
+        myLight = GetComponent<Light>();
+        audioData = GetComponent<AudioSource>();
+    }
+
+    void Update()
+    {
+        transform.position = goFollow.transform.position + v3Offset;
+        transform.rotation = Quaternion.Slerp(transform.rotation, goFollow.transform.rotation, speed * Time.deltaTime);
+        if (Input.GetKeyDown(KeyCode.F))
+        { 
+            myLight.enabled = !myLight.enabled;
+            audioData.Play();
+        }
+    }
+
+}
