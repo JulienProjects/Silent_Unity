@@ -1,0 +1,184 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public float speed = 6.0f;
+    public LayerMask groundLayers;
+    public float jumpForce = 7;
+    public Rigidbody rb;
+    public CapsuleCollider col;
+    public AudioSource audioS;
+    public AudioSource shotS;
+    public bool endWitch = false;
+    public AudioSource ventS;
+    public AudioSource reloadS;
+    public AudioSource shotSEmpty;
+    //public AudioSource hitmarkerS;
+    public int maxammo = 10;
+    public float damage = 10f;
+    public float range = 100f;
+    public Camera fpsCam;
+    public ParticleSystem gunfire;
+    public float fireRate = 15f;
+    public float reloadTime = 1f;
+    public GameObject vent;
+    public GameObject hitmarker;
+    private bool walking = false;
+    private bool isReload = false;
+    private Animator anim;
+    public int currentammo;
+    public int endWitchLife = 0;
+    private float nextTimeFire = 0f;
+    // Use this for initialization
+    void Start()
+    {
+        currentammo = maxammo;
+        anim = gameObject.GetComponentInChildren<Animator>();
+        Cursor.lockState = CursorLockMode.Locked;
+        col = GetComponent<CapsuleCollider>();
+        //audioData = GetComponent<AudioSource>();
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (GameController.gameState != GameController.GameState.inGame)
+        {
+            return;
+        }
+        float translation = Input.GetAxis("Vertical") * speed;
+        float straffle = Input.GetAxis("Horizontal") * speed;
+        translation *= Time.deltaTime;
+        straffle *= Time.deltaTime;
+        if (translation != 0 || straffle != 0)
+        {
+            walking = true;
+
+        }
+        else
+        {
+            walking = false;
+        }
+        anim.SetBool("walking", walking);
+        if (isGrounded() && Input.GetKeyDown(KeyCode.Space))
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            //Debug.Log("jump");
+        }
+
+        transform.Translate(straffle, 0, translation);
+
+        if (Input.GetKeyDown("escape"))
+        {
+            Cursor.lockState = CursorLockMode.None;
+        }
+        if (isGrounded() && (translation != 0 || straffle != 0))
+        {
+            //Debug.Log("Sound");
+            audioS.enabled = true;
+            audioS.loop = true;
+            //audioData.Play();
+        }
+        else
+        {
+            audioS.enabled = false;
+            audioS.loop = false;
+        }
+
+        if (isReload)
+            return;
+        if (currentammo <= 0)
+        {
+            if (Input.GetButton("Fire1"))
+            {
+                shotSEmpty.Play();
+            }
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                StartCoroutine(reload());
+            }
+            return;
+        }
+        if (Input.GetButton("Fire1") && currentammo != 0 && Time.time >= nextTimeFire)
+        {
+            nextTimeFire = Time.time + 1f / fireRate;
+            shot();
+        }
+
+
+    }
+    private bool isGrounded()
+    {
+        //Debug.Log("check");
+        return Physics.CheckCapsule(col.bounds.center, new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z), col.radius * .9f, groundLayers);
+    }
+    private void shot()
+    {
+        gunfire.Play();
+        RaycastHit hit;
+        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+        {
+            Debug.Log(hit.transform.name);
+            if (hit.transform.name == "vent")
+            {
+                ventS.Play();
+                Destroy(vent);
+            }
+            if (hit.transform.name == "endWitch")
+            {
+                StartCoroutine(hitmarkerShow());
+                endWitchLife++;
+                if (endWitchLife >= 5)
+                {
+                    Destroy(GameObject.FindWithTag("endWitch"));
+                    GameController.gameState = GameController.GameState.inAn;
+                    endWitch = true;
+
+                }
+
+            }
+            if (hit.transform.name == "witchScareRigid(Clone)")
+            {
+                witchSpawner witchspawner = GameObject.Find("witchSpawner").GetComponent<witchSpawner>();
+                witchspawner.witchHealth -= 100;
+                Debug.Log(witchspawner.witchHealth);
+                //Destroy(GameObject.FindWithTag("witchMover"));
+                Debug.Log("hit");
+                StartCoroutine(hitmarkerShow());
+                if (witchspawner.witchHealth <= 0)
+                {
+                    Destroy(GameObject.FindWithTag("witchMover"));
+                    Debug.Log("witchDestroy");
+
+                }
+            }
+        }
+        anim.SetTrigger("shot");
+        shotS.Play();
+        //Debug.Log("shot");
+        currentammo -= 1;
+    }
+    IEnumerator reload()
+    {
+        isReload = true;
+        anim.SetTrigger("reload");
+        reloadS.Play();
+        //Debug.Log(currentammo);
+        yield return new WaitForSeconds(reloadTime);
+        currentammo = maxammo;
+
+        isReload = false;
+
+    }
+     IEnumerator hitmarkerShow()
+    {
+        hitmarker.SetActive(true);
+        //hitmarkerS.Play();
+        yield return new WaitForSeconds(0.1f);
+        hitmarker.SetActive(false);
+    }
+
+}
