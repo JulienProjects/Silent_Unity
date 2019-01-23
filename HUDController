@@ -1,0 +1,72 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;  //<---------- Text
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class HUDController : MonoBehaviour
+{
+    private Text ammo;
+    private Text ob;
+    private Text openT;
+    private Text reload;
+    private Text respect;
+    Scene m_Scene;
+    private string sceneName;
+    // Use this for initialization
+    void Start()
+    {
+        ammo = this.transform.Find("ammoPlayer").GetComponent<Text>();
+        //ob = this.transform.Find("objectiv").GetComponent<Text>();
+        reload = this.transform.Find("reload").GetComponent<Text>();
+        //StartCoroutine(objectiv());
+        openT = this.transform.Find("openText").GetComponent<Text>();
+        respect = this.transform.Find("respect").GetComponent<Text>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        PlayerController playerController = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
+        ammo.text = Mathf.Round(playerController.currentammo).ToString();
+        if (playerController.currentammo <= 0)
+        {
+            reload.text = "Reload [R]";
+        }
+        else
+        {
+            reload.text = " ";
+        }
+        DoorScript doorScript = GameObject.FindWithTag("door").GetComponent<DoorScript>();
+        if (doorScript.enter)
+        {
+            openT.text = "Öffnen [E]";
+        }
+        else
+        {
+            openT.text = "";
+        }
+        m_Scene = SceneManager.GetActiveScene();
+        sceneName = m_Scene.name;
+        if (sceneName == "stage3")
+        {
+            prayRespect prayrespect = GameObject.FindWithTag("wife").GetComponent<prayRespect>();
+            if (prayrespect.respect)
+            {
+                respect.text = "F";
+            }
+            else
+            {
+                respect.text = "";
+            }
+        }
+
+
+        /*IEnumerator objectiv()
+        {
+            ob.text = "NEW: FIND WIFE";
+            yield return new WaitForSeconds(3f);
+            ob.text = " ";
+        }*/
+    }
+}
